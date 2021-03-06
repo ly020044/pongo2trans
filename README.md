@@ -58,6 +58,7 @@ func main() {
 	}
 
 	raw, err := json.Marshal(te.data)
+	// raw, err := json.MarshalIndent(te.data, "", "\t")
 	if err != nil {
 		log.Fatal(err)
 	}
