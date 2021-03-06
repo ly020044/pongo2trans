@@ -4,16 +4,21 @@ import (
 	"github.com/flosch/pongo2/v4"
 )
 
-var t Translator
+var (
+	t Translator
+	e Exporter
+)
 
 type tagTransNode struct {
 	name       string
 	translator Translator
+	exporter   Exporter
 	value      pongo2.IEvaluator
 }
 
 func newTagTransNode(value pongo2.IEvaluator) *tagTransNode {
 	return &tagTransNode{
+		exporter:   e,
 		translator: t,
 		value:      value,
 	}
@@ -23,6 +28,10 @@ func (node *tagTransNode) Execute(ctx *pongo2.ExecutionContext, writer pongo2.Te
 	value, err := node.value.Evaluate(ctx)
 	if err != nil {
 		return err
+	}
+
+	if node.exporter != nil {
+		node.exporter.Export(value.String())
 	}
 
 	if node.translator == nil {
@@ -49,7 +58,9 @@ func tagTransParser(doc *pongo2.Parser, start *pongo2.Token, arguments *pongo2.P
 	return node, nil
 }
 
-func RegisterTransTag(translator Translator) error {
+func RegisterTransTag(translator Translator, exporter Exporter) error {
 	t = translator
+	e = exporter
+	pongo2.RegisterTag("_", tagTransParser)
 	return pongo2.RegisterTag("trans", tagTransParser)
 }
